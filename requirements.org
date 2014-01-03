@@ -1,20 +1,23 @@
-* Explore using AJAX to make a shared state interactive application
+* Explore using Websockets to make a shared state interactive application
 ** Description
 
    Your task is to fill in the blanks and connect your browser to your
-   webservice via AJAX. We won't be using XML here unless you want
+   webservice via Websockets. We won't be using XML here unless you want
    to. I recommend JSON.
 
-   Your task is to get this shared drawing program to work using AJAX.
+   Your task is to get this shared drawing program to work using Websockets.
 
    This program allows numerous clients to connect and draw on the
    same surface and share the drawing they have made with anyone who
    is currently on.
 
-   The goal here is for you to understand the very basics of AJAX,
+   The goal here is for you to understand the very basics of Websockets,
    learn a little about canvas, learn a little bit about the overhead
-   of AJAX, learn about JSON and other technologies. Also you'll get
+   of Websockets, learn about JSON and other technologies. Also you'll get
    to learn about the flask micro-framework.
+
+   You should be able to see the difference between using websockets
+   and AJAX in this assignment.
 
 ** Collaboration
    - You may consult with others but the submission should be your
@@ -40,11 +43,9 @@
 
 ** Requirements
 
-   - [ ] Implement the AJAX Javascript parts in the HTML file static/index.htm
-   - [ ] Implement the webservice root
-   - [ ] Implement the webservice /entity/entity-name POST/PUT/GET API
-   - [ ] Implement the webservice /world API
-   - [ ] Implement the webservice /clear API
+   - [ ] Implement the Websockets Javascript parts in the HTML file static/index.htm
+   - [ ] Implement the Websockets send/recv part of the webservice
+   - [ ] Upon update all the clients should recv a websocket update message
    - [ ] Use JSON or XML to communicate (no plain text!)
    - [ ] The webservice can pass all the tests in freetests.py
    - [ ] The webservice can serve /static/index.html
@@ -61,7 +62,7 @@
 
 ** Submission Instructions
    - Fork my repository from github
-     https://github.com/abramhindle/CMPUT404-assignment-ajax
+     https://github.com/abramhindle/CMPUT404-assignment-websockets
    - Push your commits to your fork
    - In EClass for this assignment submit a URL to the git
      repository. I would prefer github for the host.
@@ -72,14 +73,14 @@
    - To mark your assignment I should be able to type:
      git clone http://github.com/youruserid/thisassignment.git yourccid
      cd yourccid
-     python freetests.py
+     bash runtests.sh
 
    - Marks will be deducted if I cannot successfully do this.
      
    - Marks will be deducted for using library code that does the assignment
 
 ** Marking
-   - 4 marks for passing all of the tests except testInternetGets
+   - 4 marks for passing all of the tests 
    - 2 marks for being usable in the browser
    - 1 mark for looking better than what I gave you
      
