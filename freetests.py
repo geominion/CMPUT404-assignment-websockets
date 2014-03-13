@@ -59,11 +59,14 @@ class WorldClient(WebSocketClient):
     def receive_my_message(self,m):
         print "RECV %s " % m
         w = json.loads(m.data)
+        kcnt = 0
         for key in w:
             if (key in world):
                 assert world[key] == w[key]
             world[key] = w[key]
-        self.count += 1
+            kcnt += 1
+        if (kcnt > 0):
+            self.count += 1
         if (self.count >= calls):
             self.close(reason='Bye bye')
 
@@ -77,7 +80,7 @@ class WorldClient(WebSocketClient):
                 return
 
     def outgoing(self):
-        for i in range(1,calls):
+        for i in range(0,calls):
             self.send_new_entity(i)
         
 
