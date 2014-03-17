@@ -22,7 +22,7 @@
     "/>
     <script src="json2.js"></script>
   </head> 
-  <body bgcolor="black" height="100%" width="100%"> 
+  <body bgcolor="white" height="100%" width="100%"> 
     <div id="debug"></div>
     <canvas id="c" width="100%" height="100%" style="-webkit-tap-highlight-color: transparent;"></canvas> 
 
@@ -35,12 +35,14 @@ var W = canvas.width  = window.innerWidth-6;
 var H = canvas.height = window.innerHeight-50;
 var wscounter = 0;
 var socket;
+var colourIndex = 0;
+var upIndex = 0;
+var downIndex = 0;
+var colours = ["#FF6600", "#FF9900", "#FFCC00", "#FFFF00", "#CCFF00", "#CC6600", "#CC9900", "#CCCC00", "#99FF00", "#99CC00", "#33FF00", "#33CC00", "#339900", "#336600", "#006600", "#009900", "#339900", "#669900", "#999900", "#99CC00", "#99FF00"];
+var uppers = ["#CC0000", "#FF0000", "#FF0033", "#FF0066", "#FF0099", "#FF00CC", "#FF00FF"];
+var downers = ["#990099", "#9900CC", "#9900FF", "#660099", "#6600CC", "#6600FF", "#330099", "#3300CC", "#3300FF"];
 
-function debug(str) {
-    var debugDiv = document.getElementById('debug');
-    debugDiv.innerHTML = "" + str;
-}
-debug("Test");
+
 
 world = {};
 
@@ -234,16 +236,28 @@ mouse = (function() {
 // Add the application specific mouse listeners!
 //XXX: TODO Make these prettier!
 mouse.mousedowners.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'blue'});
+    addEntityWithoutName({'x':x,'y':y,'colour':downers[downIndex]});
+    ++downIndex;
+    if (downIndex > 8) {
+        downIndex = 0;
+    }
 });
 
 mouse.mouseuppers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'red'});
+    addEntityWithoutName({'x':x,'y':y,'colour':uppers[upIndex]});
+    ++upIndex;
+    if (upIndex > 6) {
+        upIndex = 0;
+    }
 });
 
 mouse.mousedraggers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'green',
+    addEntityWithoutName({'x':x,'y':y,'colour':colours[colourIndex],
                           'radius':10});
+    ++colourIndex;
+    if (colourIndex > 20) {
+        colourIndex = 0;
+    }
 });
 
 
@@ -253,6 +267,7 @@ function update() {
 
 
 function wsSetup() {
+    alert("here")
     var url = "ws://"+host+"/subscribe";   
     socket = new WebSocket(url);
     socket.onopen = function() {
@@ -269,12 +284,13 @@ function wsSetup() {
         try {
             //debug("WebSocket Recv:" + msg.data);
             data = JSON.parse(msg.data));
-            for key in data:
-                world[key] = data[key]
-            drawNextFrame();
+            for (var key in data) {
+                world[key] = data[key];
+                drawNextFrame();
+            }
             //XXX: TODO What are you going to do here?            
-        } catch (e) {
-            alert("socket on message: " + e);
+        } catch (err) {
+            alert("socket on message: " + err);
         }
     }; 
 }

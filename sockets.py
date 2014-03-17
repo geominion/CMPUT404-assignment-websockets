@@ -26,6 +26,8 @@ app = Flask(__name__)
 sockets = Sockets(app)
 app.debug = True
 
+clients = list()
+
 class World:
     def __init__(self):
         self.clear()
@@ -63,6 +65,9 @@ myWorld = World()
 
 def set_listener( entity, data ):
     ''' do something with the update ! '''
+    message = json.dumps({ entity : data })
+    for client in clients:
+        client.put(message)
 
 myWorld.add_set_listener( set_listener )
         
@@ -80,10 +85,8 @@ def read_ws(ws,client):
             data = json.loads(message)
             for key in data:
                 myWorld.set(key, data[key])
-                for somebody in myWorld.listeners:
-                    somebody.put_nowait(json.dumps({ key : data }))
         except:
-            None
+            break
 
 
 @sockets.route('/subscribe')
@@ -92,14 +95,15 @@ def subscribe_socket(ws):
        websocket and read updates from the websocket '''
     # XXX: TODO IMPLEMENT ME
     client = queue.Queue()
-    myWorld.add_set_listener(client)
-    gevent.spawn(read_ws, ws, client)
+    clients.append(client)
+    babble = gevent.spawn(read_ws, ws, client)
     while True:
         try:
             message = client.get()
             ws.send(message)
         except:
-            None   
+            clients.remove(client)
+            gevent.kill(babble)
 
 
 def flask_post_json():

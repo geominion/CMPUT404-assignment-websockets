@@ -41,9 +41,12 @@ import json
 world = dict()
 # set this to something sane 
 calls = 3000
+
 class WorldClient(WebSocketClient):
     def opened(self):
         self.count = 0
+        if (self.name is None):
+            self.name = ""
 
     def send_new_entity(self,i):
         entity = "X"+str(i)
@@ -54,7 +57,7 @@ class WorldClient(WebSocketClient):
         print "Sent %s" % entity
 
     def closed(self, code, reason):
-        print(("Closed down", code, reason))
+        print(("Closed down %s " % self.name, code, reason))
 
     def receive_my_message(self,m):
         print "RECV %s " % m
@@ -72,8 +75,8 @@ class WorldClient(WebSocketClient):
 
     def incoming(self):
         while self.count < calls:
-            m = ws.receive()
-            print "Incoming RECV %s " %m
+            m = self.receive()
+            print "Incoming RECV %s %s " % (self.name,m)
             if m is not None:
                 self.receive_my_message( m )
             else:
@@ -83,7 +86,6 @@ class WorldClient(WebSocketClient):
         for i in range(0,calls):
             self.send_new_entity(i)
         
-
 if __name__ == '__main__':
     try:
         os.system("killall gunicorn");
@@ -91,21 +93,33 @@ if __name__ == '__main__':
         print "Sleeping 3 seconds"
         gevent.sleep(3)
         ws = WorldClient('ws://127.0.0.1:8000/subscribe', protocols=['http-only', 'chat'])
+        ws2 = WorldClient('ws://127.0.0.1:8000/subscribe', protocols=['http-only', 'chat'])
         ws.daemon = False
+        ws2.daemon = False
+        ws.name = "Reader/Writer"
+        ws2.name = "Reader"
         ws.connect()     
+        ws2.connect()     
         ''' what we're doing here is that we're sending new entities and getting them
             back on the websocket '''
         greenlets = [
             gevent.spawn(ws.incoming),
             gevent.spawn(ws.outgoing),
-            ]
+        ]
+        gws2 = gevent.spawn(ws2.incoming)
         gevent.joinall(greenlets)
+        ws2.close()
+        gws2.join(timeout=1)
         # here's our final test
+        print "%s %s" % (ws.count , ws2.count)
         assert ws.count == calls, ("Expected Responses were given! %d %d" % (ws.count, calls))
+        assert ws2.count >= (9*calls/10), ("2nd Client got less than 9/10 of the results! %s" % ws2.count)
         print "Looks like the tests passed!"
     finally:
         #except KeyboardInterrupt:
         ws.close()
+        ws2.close()
+        gevent.sleep(1)
         os.system("killall gunicorn");
         print "Sleeping 2 seconds"
         gevent.sleep(2)
